@@ -1,0 +1,8 @@
+server:
+  port: 8082
+
+driveeasy:
+  demo-data:
+    enabled: true
+  client:
+    age-minimum: 21

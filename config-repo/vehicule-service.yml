@@ -1,0 +1,6 @@
+server:
+  port: 8081
+
+driveeasy:
+  demo-data:
+    enabled: true

@@ -1,0 +1,154 @@
+{
+  "info": {
+    "name": "DriveEasy - Parcours de validation",
+    "description": "Parcours REST pour présenter les véhicules, vérifier l'éligibilité, simuler et exécuter une location complète. Les dates sont générées automatiquement à chaque requête.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "function localDate(date) {",
+          "  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);",
+          "  return local.toISOString().slice(0, 10);",
+          "}",
+          "const today = new Date();",
+          "const tomorrow = new Date(today);",
+          "tomorrow.setDate(tomorrow.getDate() + 1);",
+          "pm.collectionVariables.set('dateDebut', localDate(today));",
+          "pm.collectionVariables.set('dateFin', localDate(tomorrow));",
+          "pm.collectionVariables.set('dateRetour', localDate(today));"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "1 - Consulter le parc et vérifier le client",
+      "item": [
+        {
+          "name": "Lister les véhicules",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/vehicules"
+          }
+        },
+        {
+          "name": "Lister les clients",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/clients"
+          }
+        },
+        {
+          "name": "Vérifier l'éligibilité du client",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/clients/{{clientId}}/eligibilite"
+          }
+        },
+        {
+          "name": "Véhicules disponibles sur la période",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/vehicules/disponibles?dateDebut={{dateDebut}}&dateFin={{dateFin}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 - Simuler et effectuer une location",
+      "item": [
+        {
+          "name": "Simuler le prix",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": {{clientId}},\n  \"vehiculeId\": {{vehiculeId}},\n  \"dateDebut\": \"{{dateDebut}}\",\n  \"dateFin\": \"{{dateFin}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/locations/simulation"
+          }
+        },
+        {
+          "name": "Créer la réservation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('locationId', pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": {{clientId}},\n  \"vehiculeId\": {{vehiculeId}},\n  \"dateDebut\": \"{{dateDebut}}\",\n  \"dateFin\": \"{{dateFin}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/locations"
+          }
+        },
+        {
+          "name": "Enregistrer le départ",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/locations/{{locationId}}/depart"
+          }
+        },
+        {
+          "name": "Enregistrer le retour",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kmRetour\": {{kmRetour}},\n  \"dateRetour\": \"{{dateRetour}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/locations/{{locationId}}/retour"
+          }
+        },
+        {
+          "name": "Consulter le détail enrichi",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/locations/{{locationId}}"
+          }
+        },
+        {
+          "name": "Consulter les statistiques",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/locations/statistiques"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "clientId", "value": "1" },
+    { "key": "vehiculeId", "value": "1" },
+    { "key": "locationId", "value": "" },
+    { "key": "kmRetour", "value": "18100" },
+    { "key": "dateDebut", "value": "" },
+    { "key": "dateFin", "value": "" },
+    { "key": "dateRetour", "value": "" }
+  ]
+}

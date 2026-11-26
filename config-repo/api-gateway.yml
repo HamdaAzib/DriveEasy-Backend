@@ -1,0 +1,46 @@
+server:
+  port: 8080
+
+driveeasy:
+  demo-data:
+    enabled: true
+
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        cors-configurations:
+          '[/**]':
+            allowed-origins:
+              - http://localhost:4200
+            allowed-methods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowed-headers:
+              - '*'
+            exposed-headers:
+              - X-Request-Id
+      routes:
+        - id: vehicule-service
+          uri: lb://vehicule-service
+          predicates:
+            - Path=/api/vehicules,/api/vehicules/**
+          filters:
+            - StripPrefix=1
+        - id: client-service
+          uri: lb://client-service
+          predicates:
+            - Path=/api/clients,/api/clients/**
+          filters:
+            - StripPrefix=1
+        - id: location-service
+          uri: lb://location-service
+          predicates:
+            - Path=/api/locations,/api/locations/**
+          filters:
+            - StripPrefix=1

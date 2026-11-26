@@ -1,0 +1,14 @@
+server:
+  port: 8083
+
+driveeasy:
+  demo-data:
+    enabled: true
+  location:
+    coefficients:
+      STANDARD: 1.0
+      FIDELE: 1.0
+      VIP: 1.0
+    remise-fidele: 0.05
+    remise-vip: 0.10
+    facteur-penalite-retard: 1.5
